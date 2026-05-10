@@ -18,15 +18,37 @@ class FasilitasController extends Controller {
 
 
     public function storeMahasiswa(Request $request) {
-        $request->validate([
-            'nim' => 'required|unique:mahasiswa',
-            'nama' => 'required',
-            'prodi' => 'required'
-        ]);
 
-        $mahasiswa = Mahasiswa::create($request->all());
-        return response()->json(['message' => 'Mahasiswa berhasil ditambah!', 'data' => $mahasiswa], 201);
+    $request->validate([
+        'nim' => 'required|unique:mahasiswa',
+        'nama' => 'required',
+        'prodi' => 'required',
+        'ktp_ktm' => 'required|file'
+    ]);
+
+    $fileName = null;
+
+    if ($request->hasFile('ktp_ktm')) {
+
+        $file = $request->file('ktp_ktm');
+
+        $fileName = time() . '_' . $file->getClientOriginalName();
+
+        $file->move(public_path('uploads'), $fileName);
     }
+
+    $mahasiswa = Mahasiswa::create([
+        'nim' => $request->nim,
+        'nama' => $request->nama,
+        'prodi' => $request->prodi,
+        'ktp_ktm' => $fileName
+    ]);
+
+    return response()->json([
+        'message' => 'Mahasiswa berhasil ditambah!',
+        'data' => $mahasiswa
+    ], 201);
+}
 
     // Update pakai ID
 public function updateMahasiswa(Request $request, $id) {
