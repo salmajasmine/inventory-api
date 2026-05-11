@@ -74,18 +74,25 @@ public function destroyMahasiswa($id) {
     }
 
     public function storePeminjaman(Request $request) {
-        $request->validate([
-            'nim' => 'required|exists:mahasiswa,nim',
-            'kelas' => 'required'
-        ]);
 
-        $pinjam = Peminjaman::create([
-            'nim' => $request->nim,
-            'kelas' => $request->kelas,
-            'waktu_peminjaman' => now(),
-        ]);
-        return response()->json(['message' => 'Peminjaman Berhasil!', 'data' => $pinjam]);
-    }
+    $request->validate([
+        'nim' => 'required',
+        'nama_barang' => 'required',
+        'kelas' => 'required'
+    ]);
+
+    $pinjam = Peminjaman::create([
+        'nim' => $request->nim,
+        'nama_barang' => $request->nama_barang,
+        'kelas' => $request->kelas,
+        'waktu_peminjaman' => now(),
+    ]);
+
+    return response()->json([
+        'message' => 'Peminjaman berhasil!',
+        'data' => $pinjam
+    ]);
+}
 
     public function updatePeminjaman($id) {
         $pinjam = Peminjaman::findOrFail($id);
