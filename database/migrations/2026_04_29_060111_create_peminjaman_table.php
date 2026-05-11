@@ -12,15 +12,20 @@ return new class extends Migration
     public function up(): void
 {
     Schema::create('peminjaman', function (Blueprint $table) {
-        $table->id();
-        $table->string('nim'); 
-        $table->string('kelas');
-        $table->dateTime('waktu_peminjaman');
-        $table->dateTime('waktu_pengembalian')->nullable();
-        $table->timestamps();
 
-        // Relasi ke tabel mahasiswa
-        $table->foreign('nim')->references('nim')->on('mahasiswa')->onDelete('cascade');
+        $table->id();
+
+        $table->string('nim');
+
+        $table->string('nama_barang');
+
+        $table->string('kelas');
+
+        $table->timestamp('waktu_peminjaman');
+
+        $table->timestamp('waktu_pengembalian')->nullable();
+
+        $table->timestamps();
     });
 }
 
@@ -32,3 +37,4 @@ return new class extends Migration
         Schema::dropIfExists('peminjaman');
     }
 };
+
