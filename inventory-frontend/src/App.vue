@@ -175,7 +175,6 @@ const tambahMahasiswa = async () => {
 const editMahasiswa = (m: Mahasiswa) => {
 
   editId.value = m.id
-
   nama.value = m.nama
   nim.value = m.nim
   prodi.value = m.prodi
@@ -183,22 +182,25 @@ const editMahasiswa = (m: Mahasiswa) => {
 }
 
 // UPDATE MAHASISWA
+// UPDATE MAHASISWA (Ganti fungsi yang lama sama ini)
 const updateMahasiswa = async () => {
-
   try {
-
     const formData = new FormData()
 
     formData.append('nama', nama.value)
     formData.append('nim', nim.value)
     formData.append('prodi', prodi.value)
 
+    // Penting: Laravel butuh ini di dalam FormData kalau mau simulasi PUT via POST
+    formData.append('_method', 'PUT') 
+
     if (file.value) {
       formData.append('ktp_ktm', file.value)
     }
 
+    // URL-nya balikin jadi POST biasa, jangan dipaksa di URL stringnya
     await axios.post(
-      `http://127.0.0.1:8000/api/mahasiswa/${editId.value}?_method=PUT`,
+      `http://127.0.0.1:8000/api/mahasiswa/${editId.value}`,
       formData,
       {
         headers: {
@@ -208,15 +210,13 @@ const updateMahasiswa = async () => {
     )
 
     await getMahasiswa()
-
     resetForm()
+    alert("Data mahasiswa berhasil diperbarui!")
 
-  } catch (error) {
-
-    console.log(error)
-
+  } catch (error: any) {
+    console.error("Gagal Update:", error.response?.data)
+    alert("Gagal Update: " + (error.response?.data?.message || "Cek inputan!"))
   }
-
 }
 
 // HAPUS MAHASISWA
@@ -470,185 +470,354 @@ onMounted(() => {
 </template>
 
 <style>
-/* BASE */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --cr: #c4763a; --cr-l: #faf3eb; --cr-m: #edd9bc;
+  --cg: #5a7a5e; --cg-l: #eef4ee; --cg-m: #c4d9c6;
+  --bg: #f7f2eb;
+  --surface: #fdfaf5;
+  --border: #ddd3bc;
+  --border-dark: #c4b89a;
+  --text: #2e2416;
+  --text2: #6b5a40;
+  --muted: #9c8b72;
+  --serif: 'Playfair Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #0f172a;
-  color: #f8fafc;
-  margin: 0;
-  padding: 0;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  margin: 0; padding: 0;
   scroll-behavior: smooth;
 }
 
 .dashboard-wrapper {
-  max-width: 1100px;
-  margin: 80px auto; 
-  padding: 20px;
+  max-width: 900px;        
+  margin: 80px auto 60px;  
+  padding: 0 24px;
+  width: 100%;
 }
 
 /* NAVBAR */
 .navbar {
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(253, 250, 245, 0.92);
   backdrop-filter: blur(10px);
-  padding: 15px 0;
+  padding: 13px 0;
   position: fixed;
   top: 0; width: 100%;
   z-index: 1000;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--border);
 }
 .nav-container {
-  max-width: 1100px;
+  max-width: 900px;   
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 24px;
 }
-.nav-logo { font-weight: 800; font-size: 1.2rem; color: #bb86fc; }
-.nav-logo span { color: #03dac6; }
+.nav-logo {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--cr);
+  letter-spacing: 0.5px;
+}
+.nav-logo span { color: var(--cg); }
 .nav-links a {
-  color: #94a3b8;
+  color: var(--muted);
   text-decoration: none;
-  margin-left: 25px;
-  font-size: 0.9rem;
-  transition: 0.3s;
+  margin-left: 24px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  transition: color 0.2s;
 }
-.nav-links a:hover { color: #bb86fc; }
+.nav-links a:hover { color: var(--text); }
 
 /* HEADER & STATS */
-.dashboard-header { margin-bottom: 50px; }
-.dashboard-header h1 { font-size: 2rem; margin-bottom: 10px; }
-.dashboard-header p { color: #94a3b8; }
+.dashboard-header { margin-bottom: 40px; }
+.dashboard-header h1 {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.dashboard-header p { color: var(--muted); font-size: 0.875rem; }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
+  grid-template-columns: repeat(3, 1fr);  /* ganti dari auto-fit */
+  gap: 14px;
+  margin-top: 24px;
 }
 .stat-card {
-  background: #1e293b;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #334155;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border-dark);
+  border-radius: 4px;
+  padding: 20px 18px;
 }
-.stat-label { display: block; color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px; }
-.stat-value { font-size: 1.8rem; font-weight: 700; }
-.stat-card.active { border-left: 4px solid #03dac6; }
-.stat-card.alert { border-left: 4px solid #cf6679; }
+.stat-card.active { border-top-color: var(--cg); }
+.stat-card.alert  { border-top-color: var(--cr); }
+.stat-label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
 
-/* SECTION & FORMS */
+/* SECTION */
 .content-section {
-  background: #1e293b;
-  border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 26px;
+  margin-bottom: 28px;
 }
-.section-header h2 { margin-top: 0; color: #bb86fc; }
+.section-header h2 {
+  margin-top: 0;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-header h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
+/* FORM */
 .form-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  background: #0f172a;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 4px;
+  margin-bottom: 18px;
 }
 input {
-  background: #1e293b;
-  border: 1px solid #334155;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  flex: 1; min-width: 150px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 3px;
+  flex: 1;
+  min-width: 130px;
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
 }
+input:focus { border-color: var(--cr); }
+input::placeholder { color: var(--muted); }
 
 /* BUTTONS */
 button {
-  padding: 12px 20px;
-  border-radius: 8px;
-  border: none; cursor: pointer;
-  font-weight: 600; transition: 0.2s;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
 }
-.primary-btn { background: #bb86fc; color: #000; }
-.edit-btn { background: #03dac6; color: #000; margin-right: 5px; }
-.hapus-btn { background: #cf6679; color: #fff; }
-.cancel-btn { background: #64748b; color: #fff; }
+button:hover { opacity: 0.85; }
 
-/* LIST & CARDS */
-.data-list { padding: 0; }
+.primary-btn { background: var(--cr); color: var(--surface); }
+
+.edit-btn {
+  background: none;
+  color: var(--cg);
+  border: 1px solid var(--cg-m);
+  margin-right: 5px;
+}
+.hapus-btn {
+  background: none;
+  color: var(--cr);
+  border: 1px solid var(--cr-m);
+}
+.cancel-btn {
+  background: none;
+  color: var(--muted);
+  border: 1px solid var(--border-dark);
+}
+
+/* CARDS */
+.data-list { padding: 0; list-style: none; }
 .card {
-  background: #0f172a;
-  margin-bottom: 15px;
-  padding: 20px;
-  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: border-color 0.2s;
 }
-.card-content strong { display: block; font-size: 1.1rem; margin-bottom: 5px; }
-.card-content small { display: block; color: #64748b; margin-top: 5px; }
+.card:hover { border-color: var(--border-dark); }
+.card-content strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.card-content span { font-size: 12px; color: var(--muted); }
+.card-content small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.card-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-/* GRID MAHASISWA */
+/* MAHASISWA GRID */
 .data-list.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
 }
 .card-mini {
-  background: #0f172a;
-  padding: 15px;
-  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 13px 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: border-color 0.2s;
 }
+.card-mini:hover { border-color: var(--border-dark); }
+.info strong { font-size: 13px; font-weight: 600; color: var(--text); }
+.info p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.actions { display: flex; gap: 5px; }
 
-/* LOGIN PAGE STYLING */
+/* LOGIN */
 .login-page {
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #0f172a;
+  background: var(--cr-l);
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 2000;
 }
-
 .login-card {
-  background: #1e293b;
-  padding: 40px;
-  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 40px 36px;
   width: 100%;
-  max-width: 400px;
-  border: 1px solid #334155;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-width: 380px;
+  text-align: center;
 }
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.login-card .nav-logo {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 4px;
 }
-
+.login-card h2 {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+.login-form { display: flex; flex-direction: column; gap: 10px; }
 .login-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 14px;
-  font-size: 1rem;
+  padding: 12px 14px;
+  font-size: 13px;
+  border-radius: 3px;
+  font-family: var(--sans);
 }
-
 .login-btn {
   width: 100%;
-  margin-top: 10px;
-  font-size: 1rem;
-  padding: 14px;
+  background: var(--cr);
+  color: var(--surface);
+  border: none;
+  border-radius: 3px;
+  padding: 13px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
 }
+.login-btn:hover { opacity: 0.9; }
 
 /* TAGS */
-.tag-done { background: #065f46; color: #34d399; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 10px; display: inline-block; }
-.tag-progress { background: #7c2d12; color: #fb923c; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 10px; display: inline-block; }
+.tag-done {
+  background: var(--cg-l);
+  color: #2d4e31;
+  border: 1px solid var(--cg-m);
+  padding: 3px 9px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+.tag-progress {
+  background: #fef3e2;
+  color: #8a5a00;
+  border: 1px solid #f0d89a;
+  padding: 3px 9px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+.text-success { color: var(--cg); font-weight: 600; }
 
-.text-success { color: #03dac6; }
+/* Logout button override */
+.hapus-btn[style*="padding: 5px"] {
+  font-size: 11px;
+}
 </style>
 
 
