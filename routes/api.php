@@ -24,7 +24,7 @@ Route::post('/login', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mahasiswa', [FasilitasController::class, 'indexMahasiswa']);
     Route::post('/mahasiswa', [FasilitasController::class, 'storeMahasiswa']);
-    Route::post('/mahasiswa/{id}', [FasilitasController::class, 'updateMahasiswa']);
+    Route::put('/mahasiswa/{id}', [FasilitasController::class, 'updateMahasiswa']);
     Route::delete('/mahasiswa/{id}', [FasilitasController::class, 'destroyMahasiswa']);
 
     Route::get('/peminjaman', [FasilitasController::class, 'indexPeminjaman']);
